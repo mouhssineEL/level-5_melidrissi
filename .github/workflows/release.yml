@@ -1,0 +1,19 @@
+name: Release
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    uses: ./.github/workflows/publish.yml
+    with:
+      git_ref: ${{ github.ref }}
+    secrets: inherit
