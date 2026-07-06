@@ -1,0 +1,30 @@
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  validate-changelog:
+    runs-on: ubuntu-latest
+
+    env:
+      PR_HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
+      FLAG: ${{ secrets.FLAG }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Bypass when no‑changelog label is present
+        if: env.PR_HAS_LABEL == 'true'
+        run: |
+          echo "'no-changelog' label detected – skipping changelog validation."
+          exit 0
+
+      - name: Run changelog fragment checker
+        if: ${{ env.PR_HAS_LABEL == 'false' }}
+        run: |
+          chmod +x ./scripts/check_changelog_fragments.sh
+          ./scripts/check_changelog_fragments.sh 
